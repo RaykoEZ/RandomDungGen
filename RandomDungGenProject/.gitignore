@@ -8,13 +8,14 @@
 !/.git*
 
 # Do not ignore current project's `.uproject`.
-!/RandomDungGen.uproject
+!/RandomDungGenProject.uproject
 
 # Do not ignore source, config and plugins dirs.
 !/Source/**
 !/Config/**
 !/Plugins/**
-
+/Plugins/RandomDungGen/Binaries/**
+/Plugins/RandomDungGen/Intermediate/**
 # Only allow .uasset and .umap files from /Content dir.
 # They're tracked by git-lfs, don't forget to track other
 # files if adding them here.
@@ -52,3 +53,9 @@ Session.vim
 
 # Visual Studio
 .vs
+
+*.sln
+
+*.sdf
+
+*.suo

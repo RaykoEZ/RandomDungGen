@@ -1,0 +1,23 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "RandomDungGen",
+	"Description": "This is a plugin intended for generating a 2D dungeon for rogue-lite strategy games.",
+	"Category": "Other",
+	"CreatedBy": "RaykoEZ",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": true,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "RandomDungGen",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}
