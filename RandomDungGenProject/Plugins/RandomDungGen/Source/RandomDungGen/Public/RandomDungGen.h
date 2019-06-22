@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
-DECLARE_LOG_CATEGORY_EXTERN(RandomDungGenModule, All, All);
+DECLARE_LOG_CATEGORY_EXTERN(RandomDungGenModule, Warning, All);
 class FRandomDungGenModule : public IModuleInterface
 {
 public:
