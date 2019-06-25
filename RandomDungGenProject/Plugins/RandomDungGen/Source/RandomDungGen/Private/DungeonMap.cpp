@@ -3,6 +3,9 @@
 
 #include "DungeonMap.h"
 
+
+DEFINE_LOG_CATEGORY(RandomDungGen_DungeonMap);
+
 DungeonMap::DungeonMap()
 {
 	isReady = false;
@@ -30,24 +33,28 @@ DungeonMap::DungeonMap(
 	isReady = true;
 }
 
+bool DungeonMap::at(const int32 &_floor, const int32 &_x, const int32 &_y) const 
+{
+	if (_floor > numRoom.Num()) 
+	{
+		UE_LOG(RandomDungGen_DungeonMap, Warning, TEXT("Floor index: &d, does not exist in this dungeon."), _floor);
+		return false;
+	}
+
+	FloorMap temp = floorMap[_floor];
+	return temp[_y * floorDimX[_floor] + _x];
+}
+
+void DungeonMap::insertRooms()
+{
+}
+
+void DungeonMap::insertPaths()
+{
+}
 
 
 DungeonMap::~DungeonMap()
 {
 }
 
-UintArray::UintArray()
-{
-}
-
-UintArray::~UintArray()
-{
-}
-
-FloorMap::FloorMap()
-{
-}
-
-FloorMap::~FloorMap()
-{
-}

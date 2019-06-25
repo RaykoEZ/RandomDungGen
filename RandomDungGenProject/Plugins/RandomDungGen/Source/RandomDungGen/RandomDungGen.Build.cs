@@ -1,7 +1,7 @@
 // Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 using UnrealBuildTool;
-
+using System.IO;
 public class RandomDungGen : ModuleRules
 {
 	public RandomDungGen(ReadOnlyTargetRules Target) : base(Target)
@@ -11,18 +11,21 @@ public class RandomDungGen : ModuleRules
 		PublicIncludePaths.AddRange(
 			new string[] {
 				// ... add public include paths required here ...
-			}
-			);
+
+            }
+            );
 				
 		
 		PrivateIncludePaths.AddRange(
 			new string[] {
 				// ... add other private include paths required here ...
-			}
+                
+            }
 			);
-			
-		
-		PublicDependencyModuleNames.AddRange(
+        //PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "Public"));
+        //PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "Private"));
+
+        PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
 				"Core",
