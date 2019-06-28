@@ -14,30 +14,32 @@ struct RANDOMDUNGGEN_API DungeonProperties
 {
 	/// ctor and dtor
 	DungeonProperties();
+
+	///@brief ctor uses integers to avoid type casting, please DO NOT initialize int values below 1
 	DungeonProperties(
-		const uint8 & _numFloor, 
-		const uint8 & _numRoomMin, 
-		const uint8 & _numRoomMax,
-		const uint8 & _roomDimMin,
-		const uint8 & _roomDimMax,
-		const uint8 & _floorDimMin,
-		const uint8 & _floorDimMax);
+		const int32 & _numFloor,
+		const int32 & _numRoomMin,
+		const int32 & _numRoomMax,
+		const int32 & _roomDimMin,
+		const int32 & _roomDimMax,
+		const int32 & _floorDimMin,
+		const int32 & _floorDimMax);
 
 	~DungeonProperties();
 
 	///@brief number of floors
-	uint8 numFloors;
+	int32 numFloors;
 
 	///@brief number of rooms in each floor
-	uint8 numRoomMin;
-	uint8 numRoomMax;
+	int32 numRoomMin;
+	int32 numRoomMax;
 
 	///@brief room min/max dimensions of each floor
-	uint8 roomDimMin;
-	uint8 roomDimMax;
+	int32 roomDimMin;
+	int32 roomDimMax;
 
-	uint8 floorDimMin;
-	uint8 floorDimMax;
+	int32 floorDimMin;
+	int32 floorDimMax;
 
 
 };
@@ -52,22 +54,22 @@ public:
 	void generateDungeon();
 
 
-	void setNumFloors(const uint8 &_numFloor) 
+	void setNumFloors(const int32 &_numFloor)
 	{ 
 		dungeonProp.numFloors = _numFloor; 
 	}
-	void setNumRooms(const uint8 &_min, const uint8 &_max) 
+	void setNumRooms(const int32 &_min, const int32 &_max)
 	{ 
 		dungeonProp.numRoomMin = _min;
 		dungeonProp.numRoomMax = _max;
 	}
-	void setRoomDims(const uint8 &_min, const uint8 &_max)
+	void setRoomDims(const int32 &_min, const int32 &_max)
 	{ 
 		dungeonProp.roomDimMin = _min;
 		dungeonProp.roomDimMax = _max;
 	}
 
-	void setFloorDims(const uint8 &_min, const uint8 &_max)
+	void setFloorDims(const int32 &_min, const int32 &_max)
 	{
 		dungeonProp.floorDimMin = _min;
 		dungeonProp.floorDimMax = _max;

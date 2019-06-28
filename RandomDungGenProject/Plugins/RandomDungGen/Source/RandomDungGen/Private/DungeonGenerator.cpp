@@ -28,30 +28,30 @@ void DungeonGenerator::generateDungeon()
 	/// 1. Generate number of rooms
 	/// 2. Call generateFloor to append floor data into our map
 
-	TArray<uint8> numRoom;
-	TArray<uint8> floorDimX;
-	TArray<uint8> floorDimY;
+	TArray<int32> numRoom;
+	TArray<int32> floorDimX;
+	TArray<int32> floorDimY;
 	numRoom.Reserve(dungeonProp.numFloors);
 	floorDimX.Reserve(dungeonProp.numFloors);
 	floorDimY.Reserve(dungeonProp.numFloors);
-	uint8 totalRooms = 0;
+	int32 totalRooms = 0;
 
 	/// generate random number of rooms per floor and their dimensions
-	for (uint8 i = 0; i < dungeonProp.numFloors; ++i) 
+	for (int32 i = 0; i < dungeonProp.numFloors; ++i)
 	{
-		uint8 numRoomTemp = (uint8)FMath::RandRange(dungeonProp.numRoomMin, dungeonProp.numRoomMax);
+		int32 numRoomTemp = FMath::RandRange(dungeonProp.numRoomMin, dungeonProp.numRoomMax);
 		numRoom.Add(numRoomTemp);	
 		totalRooms += numRoomTemp;
-		floorDimX.Add((uint8)FMath::RandRange(dungeonProp.floorDimMin, dungeonProp.floorDimMax));
-		floorDimY.Add((uint8)FMath::RandRange(dungeonProp.floorDimMin, dungeonProp.floorDimMax));
+		floorDimX.Add(FMath::RandRange(dungeonProp.floorDimMin, dungeonProp.floorDimMax));
+		floorDimY.Add(FMath::RandRange(dungeonProp.floorDimMin, dungeonProp.floorDimMax));
 
 	}
 	UE_LOG(RandomDungGen_DungeonGenerator, Warning,TEXT("Total room in Dungeon: %d."), totalRooms);
 	
-	TArray<UintArray> roomDimX;
-	TArray<UintArray> roomDimY;
-	TArray<UintArray> roomPosX;
-	TArray<UintArray> roomPosY;
+	TArray<IntArray> roomDimX;
+	TArray<IntArray> roomDimY;
+	TArray<IntArray> roomPosX;
+	TArray<IntArray> roomPosY;
 
 	roomDimX.Reserve(dungeonProp.numFloors);
 	roomDimY.Reserve(dungeonProp.numFloors);
@@ -67,22 +67,22 @@ void DungeonGenerator::generateRooms()
 	/// 2. Generate room XY dimensions for each room
 	/// Then we fit a room into the floor map one at a random position 
 	/// check if it fits nto the floor dims and doesn't overlap/merge with other previous rooms
-	for (uint8 i = 0; i < dungeonProp.numFloors; ++i) 
+	for (int32 i = 0; i < dungeonProp.numFloors; ++i)
 	{
 		/// We don't want rooms on the edge/corners of a floor, so we make a border
-		uint8 roomPosXMax = map.getFloorDimX(i) - dungeonProp.roomDimMax;
-		uint8 roomPosXMin = 1;
-		uint8 roomPosYMax = map.getFloorDimY(i) - dungeonProp.roomDimMax;
-		uint8 roomPosYMin = 1;
-		uint8 numRoomThisFloor = map.getNumRoom(i);
+		int32 roomPosXMax = map.getFloorDimX(i) - dungeonProp.roomDimMax;
+		int32 roomPosXMin = 1;
+		int32 roomPosYMax = map.getFloorDimY(i) - dungeonProp.roomDimMax;
+		int32 roomPosYMin = 1;
+		int32 numRoomThisFloor = map.getNumRoom(i);
 		///Attempt to insert these rooms in
-		for (uint8 j = 0; j < numRoomThisFloor; ++j)
+		for (int32 j = 0; j < numRoomThisFloor; ++j)
 		{
-			uint8 roomPosX = (uint8)FMath::RandRange(roomPosXMin, roomPosXMax);
-			uint8 roomPosY = (uint8)FMath::RandRange(roomPosYMin, roomPosYMax);
+			int32 roomPosX = FMath::RandRange(roomPosXMin, roomPosXMax);
+			int32 roomPosY = FMath::RandRange(roomPosYMin, roomPosYMax);
 
-			uint8 roomDimX = (uint8)FMath::RandRange(dungeonProp.roomDimMin, dungeonProp.roomDimMax);
-			uint8 roomDimY = (uint8)FMath::RandRange(dungeonProp.roomDimMin, dungeonProp.roomDimMax);
+			int32 roomDimX = FMath::RandRange(dungeonProp.roomDimMin, dungeonProp.roomDimMax);
+			int32 roomDimY = FMath::RandRange(dungeonProp.roomDimMin, dungeonProp.roomDimMax);
 			/// Now imagine we make rooms like we punch holes into cardboard sheets
 			/// We want to use agents to generate some paths next
 			map.addRoomPosX(i, roomPosX);
@@ -116,13 +116,13 @@ DungeonProperties::DungeonProperties()
 }
 
 DungeonProperties::DungeonProperties(
-	const uint8 & _numFloor, 
-	const uint8 & _numRoomMin, 
-	const uint8 & _numRoomMax, 
-	const uint8 & _roomDimMin, 
-	const uint8 & _roomDimMax,
-	const uint8 & _floorDimMin,
-	const uint8 & _floorDimMax
+	const int32 & _numFloor,
+	const int32 & _numRoomMin,
+	const int32 & _numRoomMax,
+	const int32 & _roomDimMin,
+	const int32 & _roomDimMax,
+	const int32 & _floorDimMin,
+	const int32 & _floorDimMax
 	):
 	numFloors(_numFloor),
 	numRoomMin(_numRoomMin),
