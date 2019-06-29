@@ -68,10 +68,10 @@ void DungeonMap::insertRooms()
 	{
 		for (int j = 0; j < numRoom[i]; ++j)
 		{
-			FVector temp =
-					FVector(
-					(float)roomPosX[i].dim[j], 
-					(float)roomPosY[i].dim[j], 0.0f);
+			FIntVector temp =
+					FIntVector(
+					roomPosX[i].dim[j], 
+					roomPosY[i].dim[j], 0);
 
 			floorMap[i].traversableSet.Add(temp);
 

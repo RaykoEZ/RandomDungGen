@@ -1,9 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
-#include "Array.h"
-#include "Vector.h"
-#include "Set.h"
 #include "CoreMinimal.h"
 
 /**
@@ -35,8 +32,8 @@ struct RANDOMDUNGGEN_API FloorMap
 	///@brief raw flags for tile types on a floor
 	TArray<bool> map;
 	///@brief sets of tile positions to render on a floor.
-	TSet<FVector> traversableSet;
-	TSet<FVector> untraversableSet;
+	TSet<FIntVector> traversableSet;
+	TSet<FIntVector> untraversableSet;
 
 	bool& operator[] (const int32 &_i)
 	{
@@ -59,39 +56,58 @@ public:
 
 	~DungGenAgent();
 
+	///@brief reset this Agent's properties
+	/// attending to be used for constructing a new floor map
+	void reset(
+		const int32 &_dimX,
+		const int32 &_dimY,
+		const int32 &_numAgents,
+		const float &_detourRate,
+		const FloorMap & _map);
 
-	void init();
+	FloorMap createFloorMap();
+	
 
-	FloorMap tracePaths();
-
-	///@brief gets the value in a floor's terrain with a an x-y grid coordinate
+	///@brief util methods that get the value in a floor's terrain with a an x-y grid coordinate
+	///and vice versa
 	bool& at(const int32 &_x, const int32 &_y);
+	FIntVector idxToVector2D(const int32 & _idx);
+
 	/// traversing through the floor indices
 	int32 goVertical( const bool &_up, const int32 &_currentY);
 	int32 goHorizontal( const bool &_right, const int32 &_currentX);
 
-	//void setDim() {}
 
 protected:
-
-
+	///@brief initialise agent origins
+	void init();
+	///@brief decides agent's orientation
+	void tracePaths();
+	///@brief makes modification on the given floor map
+	void updateMap();
+	///@brief flag to show we've finished generating the floor
+	bool finishedTracing;
 	/// dimensions of the current floor
 	int32 dimX;
 	int32 dimY;
 	int32 numAgents;
-
-	///@brief The XY direction of agents on the grid
+	float detourRate;
+	float invDimX;
+	float invDimY;
+	///@brief The XY direction of agents (indices) on the grid
 	/// 
-	TSet<int32> upAgents;
-	TSet<int32> downAgents;
-	TSet<int32> leftAgents;
-	TSet<int32> rightAgents;
+	TSet<int32> XAgents;
+	TSet<int32> YAgents;
+
+	/// @brief displacement from agent to target claculated and store here
+	TArray<int32> diffX;
+	TArray<int32> diffY;
 
 	TArray<int32> targetPosX;
 	TArray<int32> targetPosY;
 	TArray<int32> agentPosX;
 	TArray<int32> agentPosY;
-	float detourRate;
+
 	FloorMap targetMap;
 
 };
