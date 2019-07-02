@@ -75,10 +75,12 @@ public:
 	}
 
 	DungeonMap getDungeonMap() const;
-
+	FloorMap getFloorMap( const int32 &_floorIdx) const;
+	TArray<FloorMap> getFloorMaps() const;
+	TArray<FTransform> getMapTileInstanceTransform(const int32 &_floorIdx) const;
 protected:
 
-	void generateRooms();
+	void generateFloors();
 
 	///@brief the properties to use when generating the dungeon floors
 	DungeonProperties dungeonProp;

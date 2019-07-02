@@ -30,10 +30,10 @@ struct RANDOMDUNGGEN_API FloorMap
 	~FloorMap();
 
 	///@brief raw flags for tile types on a floor
+	///@brief true for normal traversable terrain, vice versa.
 	TArray<bool> map;
 	///@brief sets of tile positions to render on a floor.
 	TSet<FIntVector> traversableSet;
-	TSet<FIntVector> untraversableSet;
 
 	bool& operator[] (const int32 &_i)
 	{
@@ -70,12 +70,8 @@ public:
 
 	///@brief util methods that get the value in a floor's terrain with a an x-y grid coordinate
 	///and vice versa
-	bool& at(const int32 &_x, const int32 &_y);
+	bool& mapCellValue(const int32 &_x, const int32 &_y);
 	FIntVector idxToVector2D(const int32 & _idx);
-
-	/// traversing through the floor indices
-	int32 goVertical( const bool &_up, const int32 &_currentY);
-	int32 goHorizontal( const bool &_right, const int32 &_currentX);
 
 
 protected:

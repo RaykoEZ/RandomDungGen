@@ -37,33 +37,32 @@ DungeonMap::DungeonMap(
 	for (int i = 0; i < floorMap.Num(); ++i)
 	{
 
-		int32 floorArea = floorDimX[i] * floorDimY[i];
+		//int32 floorArea = floorDimX[i] * floorDimY[i];
 
 		int32 roomArea = 0;
-
+		
 		for (int j = 0; j < numRoom[i]; ++j)
 		{
 			roomArea += roomDimX[i].dim[j] * roomDimY[i].dim[j];
 		}
-
-
 		floorMap[i].traversableSet.Reserve(roomArea);
-		floorMap[i].untraversableSet.Reserve(floorArea - roomArea);
 	}
 
 
 
 
-	isReady = true;
+	isReady = false;
 }
 
 
 
-void DungeonMap::insertRooms()
+void DungeonMap::genFloors()
 {
 
 	/// for each floor, each room's origiin corner is appended to a set of traversable positions 
 	/// This prepares for the initialisation of "digging" agents
+
+
 	for (int i = 0; i < floorMap.Num(); ++i) 
 	{
 		for (int j = 0; j < numRoom[i]; ++j)
@@ -76,15 +75,23 @@ void DungeonMap::insertRooms()
 			floorMap[i].traversableSet.Add(temp);
 
 		}
+		/// Now we trace paths for each floor
+			DungGenAgent agent = DungGenAgent(
+			floorDimX[i],
+			floorDimY[i],
+			numRoom[i],
+			0.5f,
+			floorMap[i]);
+
+			floorMap[i] = agent.createFloorMap();
+
 	}
 
-
-
+	/// We've finished generating all floors
+	isReady = true;
 }
 
-void DungeonMap::insertPaths()
-{
-}
+
 
 
 DungeonMap::~DungeonMap()

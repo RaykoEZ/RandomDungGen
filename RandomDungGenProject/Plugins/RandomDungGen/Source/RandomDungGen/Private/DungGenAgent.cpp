@@ -59,7 +59,9 @@ void DungGenAgent::init()
 {
 	if (detourRate >= 1.0f) 
 	{
-		
+		UE_LOG(RandomDungGen_DungGenAgent, Warning, TEXT("Detour rate is a probability of domain {0.1}, please initialize between 0 and 1."));
+
+		detourRate = 0.0f;
 	
 	}
 	invDimX = 1 / dimX;
@@ -79,9 +81,7 @@ void DungGenAgent::init()
 	/// We occupy all necessary rooms first and leftover agents start in random rooms
 	auto traversable = targetMap.traversableSet.Array();
 	for (int g = 0; g < numAgents; ++g) 
-	{
-		
-		
+	{	
 		if (g < targetMap.traversableSet.Num())
 		{
 			agentPosX[g] = traversable[g].X;
@@ -189,7 +189,6 @@ void DungGenAgent::updateMap()
 {
 
 	/// For now we do this procedurally, can be potentially improved with multi-threading
-
 	/// provess agents going in x axis
 	if (XAgents.Num() > 0)
 	{	
@@ -197,18 +196,20 @@ void DungGenAgent::updateMap()
 
 		for (int i = 0; i < arr.Num(); ++i)
 		{
-
-			if (diffX[i] < 0) 
+			int32 posX = agentPosX[arr[i]];
+			if (diffX[i] < 0 && posX > 0) 
 			{
-				/// target below us, need to go down
-			
+				/// target X is less than agent, need to go left
+				--agentPosX[arr[i]];			
 			}
-			else 
+			else if (diffX[i] < 0 && posX < dimX - 1)
 			{
-				/// go up
-			
+				/// go right
+				++agentPosX[arr[i]];
 			}
-
+			FIntVector newPos = FIntVector(agentPosX[arr[i]], agentPosY[arr[i]], 0);
+			mapCellValue(newPos.X, newPos.Y) = true;
+			targetMap.traversableSet.Add(newPos);
 
 		}
 	}
@@ -218,16 +219,21 @@ void DungGenAgent::updateMap()
 		TArray<int32> arr = YAgents.Array();
 		for (int i = 0; i < arr.Num(); ++i)
 		{
-			if (diffY[i] < 0)
-			{
-				/// target left of us, go left
+			int32 posY = agentPosY[arr[i]];
 
-			}
-			else 
+			if (diffY[i] < 0 && posY > 0)
 			{
-				/// go right
-			
+				/// target left of us, go down
+				--agentPosY[arr[i]];
 			}
+			else if (diffY[i] < 0 && posY < dimY - 1)
+			{
+				/// go up
+				++agentPosY[arr[i]];
+			}
+			FIntVector newPos = FIntVector(agentPosX[arr[i]], agentPosY[arr[i]], 0);
+			mapCellValue(newPos.X, newPos.Y) = true;
+			targetMap.traversableSet.Add(newPos);
 		}
 	}
 
@@ -237,7 +243,7 @@ void DungGenAgent::updateMap()
 
 
 
-bool& DungGenAgent::at(const int32 &_x, const int32 &_y)
+bool& DungGenAgent::mapCellValue(const int32 &_x, const int32 &_y)
 {
 	int32 index = _y * dimX + _x;
 	if (index < 0 || index > targetMap.map.Num()) 
@@ -256,42 +262,6 @@ FIntVector DungGenAgent::idxToVector2D(const int32 & _idx)
 	return FIntVector(x, y, 0);
 }
 
-int32 DungGenAgent::goVertical(const bool & _up, const int32 &_currentY)
-{
-	int32 ret = _currentY;
-	if (_up && _currentY < dimY ) 
-	{
-		++ret;
-		return ret;
-	
-	}
-	else if (!_up && _currentY > 0) 
-	{
-		--ret;
-		return ret;
-	}
-	UE_LOG(RandomDungGen_DungGenAgent, Fatal, TEXT("Agent cannot move up or down."));
-	return ret;
-}
-
-int32 DungGenAgent::goHorizontal(const bool & _right, const int32 &_currentX)
-{
-	int32 ret = _currentX;
-	if (_right && _currentX < dimX)
-	{
-		++ret;
-		return ret;
-
-	}
-	else if (!_right && _currentX > 0)
-	{
-		--ret;
-		return ret;
-	}
-	UE_LOG(RandomDungGen_DungGenAgent, Fatal, TEXT("Agent cannot move up or down."));
-
-	return ret;
-}
 
 IntArray::IntArray()
 {

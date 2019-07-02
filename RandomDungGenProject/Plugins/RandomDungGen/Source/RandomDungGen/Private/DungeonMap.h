@@ -43,7 +43,7 @@ public:
 	IntArray getRoomPosX(const int32 &_floor) const { return roomPosX[_floor]; }
 	IntArray getRoomPosY(const int32 &_floor) const { return roomPosY[_floor]; }
 	FloorMap getFloorMap(const int32 &_floor) const { return floorMap[_floor]; }
-
+	TArray<FloorMap> getFloorMaps() const { return floorMap; }
 	/// setters/adders
 	void addFloorDimX(const int32 &_floor, const int32 &_x) { floorDimX[_floor] = _x; }
 	void addFloorDimY(const int32 &_floor, const int32 &_y) { floorDimY[_floor] = _y; }
@@ -55,8 +55,7 @@ public:
 	
 	
 	/// apply changes to the current map
-	void insertRooms();
-	void insertPaths();
+	void genFloors();
 
 
 protected:

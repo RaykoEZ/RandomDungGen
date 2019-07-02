@@ -58,10 +58,10 @@ void DungeonGenerator::generateDungeon()
 	roomPosX.Reserve(dungeonProp.numFloors);
 	roomPosY.Reserve(dungeonProp.numFloors);
 	map = DungeonMap(numRoom, floorDimX, floorDimY, roomDimX, roomDimY, roomPosX, roomPosY);
-	generateRooms();
+	generateFloors();
 }
 
-void DungeonGenerator::generateRooms()
+void DungeonGenerator::generateFloors()
 {
 	/// 1. Generate floor map XY dimensions
 	/// 2. Generate room XY dimensions for each room
@@ -91,7 +91,7 @@ void DungeonGenerator::generateRooms()
 
 	}
 
-	map.insertRooms();
+	map.genFloors();
 }
 
 DungeonMap DungeonGenerator::getDungeonMap() const
@@ -101,6 +101,43 @@ DungeonMap DungeonGenerator::getDungeonMap() const
 		UE_LOG(RandomDungGen_DungeonGenerator, Warning, TEXT("The map you got is empty, please call generateDungeon() to generate a map and call this again."));
 	}
 	return map;
+}
+
+FloorMap DungeonGenerator::getFloorMap(const int32 & _floorIdx) const
+{
+	if (!map.isReady)
+	{
+		UE_LOG(RandomDungGen_DungeonGenerator, Warning, TEXT("The map you got is empty, please call generateDungeon() to generate a map and call this again."));
+	}
+	return map.getFloorMap(_floorIdx);
+}
+
+TArray<FloorMap> DungeonGenerator::getFloorMaps() const
+{
+	if (!map.isReady)
+	{
+		UE_LOG(RandomDungGen_DungeonGenerator, Warning, TEXT("The map you got is empty, please call generateDungeon() to generate a map and call this again."));
+	}
+	return map.getFloorMaps();
+}
+
+TArray<FTransform> DungeonGenerator::getMapTileInstanceTransform(const int32 &_floorIdx) const
+{
+	if (!map.isReady)
+	{
+		UE_LOG(RandomDungGen_DungeonGenerator, Warning, TEXT("The map you got is empty, please call generateDungeon() to generate a map and call this again."));
+	}
+	auto floorInstances = map.getFloorMap(_floorIdx).traversableSet;
+	auto instances = floorInstances.Array();
+	TArray<FTransform> transforms;
+	int size = instances.Num();
+	transforms.Reserve(size);
+	for (int i = 0; i < size; ++i)
+	{
+		FVector V = FVector(instances[i]);
+		transforms.Push(FTransform(V));
+	}
+	return transforms;
 }
 
 
