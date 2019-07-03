@@ -68,53 +68,56 @@ void DungGenAgent::init()
 	invDimY = 1 / dimY;
 	bool finishedTracing = false;
 	/// reserve memoory since we know the problem size
-	targetPosX.Reserve(numAgents);
-	targetPosY.Reserve(numAgents);
-	agentPosX.Reserve(numAgents);
-	agentPosY.Reserve(numAgents);
-	diffX.Reserve(numAgents);
-	diffY.Reserve(numAgents);
+	targetPosX.SetNum(numAgents);
+	targetPosY.SetNum(numAgents);
+	agentPosX.SetNum(numAgents);
+	agentPosY.SetNum(numAgents);
+	diffX.SetNum(numAgents);
+	diffY.SetNum(numAgents);
 	XAgents.Reserve(numAgents);
 	YAgents.Reserve(numAgents);
 
 	/// setting init Positions for all agents
 	/// We occupy all necessary rooms first and leftover agents start in random rooms
-	auto traversable = targetMap.traversableSet.Array();
-	for (int g = 0; g < numAgents; ++g) 
-	{	
-		if (g < targetMap.traversableSet.Num())
+	if (targetMap.traversableSet.Num() > 0) 
+	{
+		auto traversable = targetMap.traversableSet.Array();
+		for (int g = 0; g < numAgents; ++g)
 		{
-			agentPosX[g] = traversable[g].X;
-			agentPosY[g] = traversable[g].Y;
+			if (g < targetMap.traversableSet.Num())
+			{
+				agentPosX[g] = traversable[g].X;
+				agentPosY[g] = traversable[g].Y;
 
 
-		}
-		else
-		{
-			int randIdx = FMath::RandRange(0, targetMap.traversableSet.Num());
-			agentPosX[g] = traversable[randIdx].X;
-			agentPosY[g] = traversable[randIdx].Y;
+			}
+			else
+			{
+				int randIdx = FMath::RandRange(0, targetMap.traversableSet.Num());
+				agentPosX[g] = traversable[randIdx].X;
+				agentPosY[g] = traversable[randIdx].Y;
 
-		}
+			}
 
-		/// initialize target positions, similar to setting positions but we remove self position
-		auto targets = targetMap.traversableSet;
-		targets.Remove(FIntVector(agentPosX[g], agentPosY[g], 0));
-		auto targetArr = targets.Array();
+			/// initialize target positions, similar to setting positions but we remove self position
+			auto targets = targetMap.traversableSet;
+			auto targetArr = targets.Array();
 
-		if (g < targetMap.traversableSet.Num()-1)
-		{
-			targetPosX[g] = targetArr[g].X;
-			targetPosY[g] = targetArr[g].Y;
+			if (g < targetArr.Num())
+			{
+				targetPosX[g] = targetArr[g].X;
+				targetPosY[g] = targetArr[g].Y;
 
-		}
-		else
-		{
-			int randTargetIdx = FMath::RandRange(0, targets.Num());
-			targetPosX[g] = targetArr[randTargetIdx].X;
-			targetPosY[g] = targetArr[randTargetIdx].Y;
+			}
+			else
+			{
+				int randTargetIdx = FMath::RandRange(0, targetArr.Num());
+				targetPosX[g] = targetArr[randTargetIdx].X;
+				targetPosY[g] = targetArr[randTargetIdx].Y;
+			}
 		}
 	}
+	
 }
 
 
@@ -263,17 +266,7 @@ FIntVector DungGenAgent::idxToVector2D(const int32 & _idx)
 }
 
 
-IntArray::IntArray()
-{
-}
 
-IntArray::IntArray(const TArray<int32>& _dim) : dim(_dim)
-{
-}
-
-IntArray::~IntArray()
-{
-}
 
 FloorMap::FloorMap()
 {

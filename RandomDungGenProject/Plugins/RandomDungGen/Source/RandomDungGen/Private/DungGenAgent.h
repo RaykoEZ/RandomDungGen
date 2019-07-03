@@ -8,19 +8,7 @@
  */
 DECLARE_LOG_CATEGORY_EXTERN(RandomDungGen_DungGenAgent, Warning, All);
 
-struct RANDOMDUNGGEN_API IntArray
-{
-	/// ctor and dtor
-	IntArray();
-	IntArray(const TArray<int32> &_dim);
-	~IntArray();
 
-	TArray<int32> dim;
-	int32& operator[] (const int32 &_i)
-	{
-		return dim[_i];
-	}
-};
 
 struct RANDOMDUNGGEN_API FloorMap
 {

@@ -30,6 +30,7 @@ DungeonMap::DungeonMap(
 	roomDimX = _roomDimX;
 	roomDimY = _roomDimY;
 
+	floorMap.SetNum(floorDimX.Num());
 	/// this reserves mem of rooms and spaces in each floor
 	/// doesnot factor paths as they have not been generated
 	/// but it still means less mallocs overall
@@ -45,6 +46,7 @@ DungeonMap::DungeonMap(
 		{
 			roomArea += roomDimX[i].dim[j] * roomDimY[i].dim[j];
 		}
+		floorMap[i].map.SetNum(floorDimX[i] * floorDimY[i]);
 		floorMap[i].traversableSet.Reserve(roomArea);
 	}
 
@@ -98,3 +100,14 @@ DungeonMap::~DungeonMap()
 {
 }
 
+IntArray::IntArray()
+{
+}
+
+IntArray::IntArray(const TArray<int32>& _dim) : dim(_dim)
+{
+}
+
+IntArray::~IntArray()
+{
+}

@@ -48,21 +48,17 @@ void DungeonGenerator::generateDungeon()
 	}
 	UE_LOG(RandomDungGen_DungeonGenerator, Warning,TEXT("Total room in Dungeon: %d."), totalRooms);
 	
+
 	TArray<IntArray> roomDimX;
 	TArray<IntArray> roomDimY;
 	TArray<IntArray> roomPosX;
 	TArray<IntArray> roomPosY;
 
-	roomDimX.Reserve(dungeonProp.numFloors);
-	roomDimY.Reserve(dungeonProp.numFloors);
-	roomPosX.Reserve(dungeonProp.numFloors);
-	roomPosY.Reserve(dungeonProp.numFloors);
-	map = DungeonMap(numRoom, floorDimX, floorDimY, roomDimX, roomDimY, roomPosX, roomPosY);
-	generateFloors();
-}
-
-void DungeonGenerator::generateFloors()
-{
+	roomDimX.SetNum(dungeonProp.numFloors);
+	roomDimY.SetNum(dungeonProp.numFloors);
+	roomPosX.SetNum(dungeonProp.numFloors);
+	roomPosY.SetNum(dungeonProp.numFloors);
+	
 	/// 1. Generate floor map XY dimensions
 	/// 2. Generate room XY dimensions for each room
 	/// Then we fit a room into the floor map one at a random position 
@@ -70,27 +66,38 @@ void DungeonGenerator::generateFloors()
 	for (int32 i = 0; i < dungeonProp.numFloors; ++i)
 	{
 		/// We don't want rooms on the edge/corners of a floor, so we make a border
-		int32 roomPosXMax = map.getFloorDimX(i) - dungeonProp.roomDimMax;
-		int32 roomPosXMin = 1;
-		int32 roomPosYMax = map.getFloorDimY(i) - dungeonProp.roomDimMax;
-		int32 roomPosYMin = 1;
-		int32 numRoomThisFloor = map.getNumRoom(i);
+		
+		int32 numRoomThisFloor = numRoom[i];
+		
+		roomDimX[i].dim.Reserve(numRoomThisFloor);
+		roomDimY[i].dim.Reserve(numRoomThisFloor);
+		roomPosX[i].dim.Reserve(numRoomThisFloor);
+		roomPosY[i].dim.Reserve(numRoomThisFloor);
 		///Attempt to insert these rooms in
 		for (int32 j = 0; j < numRoomThisFloor; ++j)
 		{
-			int32 roomPosX = FMath::RandRange(roomPosXMin, roomPosXMax);
-			int32 roomPosY = FMath::RandRange(roomPosYMin, roomPosYMax);
 
-			int32 roomDimX = FMath::RandRange(dungeonProp.roomDimMin, dungeonProp.roomDimMax);
-			int32 roomDimY = FMath::RandRange(dungeonProp.roomDimMin, dungeonProp.roomDimMax);
+			int32 thisRoomDimX = FMath::RandRange(dungeonProp.roomDimMin, dungeonProp.roomDimMax);
+			int32 thisRoomDimY = FMath::RandRange(dungeonProp.roomDimMin, dungeonProp.roomDimMax);
+
+			int32 roomPosXMax = floorDimX[i] - thisRoomDimX;
+			int32 roomPosXMin = 1;
+			int32 roomPosYMax = floorDimY[i] - thisRoomDimY;
+			int32 roomPosYMin = 1;
+			int32 thisRoomPosX = FMath::RandRange(roomPosXMin, roomPosXMax);
+			int32 thisRoomPosY = FMath::RandRange(roomPosYMin, roomPosYMax);
+
+
 			/// Now imagine we make rooms like we punch holes into cardboard sheets
 			/// We want to use agents to generate some paths next
-			map.addRoomPosX(i, roomPosX);
-			map.addRoomPosY(i, roomPosY);
+			roomDimX[i].dim.Push(thisRoomDimX);
+			roomDimY[i].dim.Push(thisRoomDimY);
+			roomPosX[i].dim.Push(thisRoomPosX);
+			roomPosY[i].dim.Push(thisRoomPosY);
 		}
 
 	}
-
+	map = DungeonMap(numRoom, floorDimX, floorDimY, roomDimX, roomDimY, roomPosX, roomPosY);
 	map.genFloors();
 }
 
@@ -123,12 +130,12 @@ TArray<FloorMap> DungeonGenerator::getFloorMaps() const
 
 TArray<FTransform> DungeonGenerator::getMapTileInstanceTransform(const int32 &_floorIdx) const
 {
-	if (!map.isReady)
+	if (!map.isReady || _floorIdx >= dungeonProp.numFloors || _floorIdx < 0)
 	{
 		UE_LOG(RandomDungGen_DungeonGenerator, Warning, TEXT("The map you got is empty, please call generateDungeon() to generate a map and call this again."));
 	}
 	auto floorInstances = map.getFloorMap(_floorIdx).traversableSet;
-	auto instances = floorInstances.Array();
+	TArray<FIntVector> instances = floorInstances.Array();
 	TArray<FTransform> transforms;
 	int size = instances.Num();
 	transforms.Reserve(size);
@@ -138,6 +145,7 @@ TArray<FTransform> DungeonGenerator::getMapTileInstanceTransform(const int32 &_f
 		transforms.Push(FTransform(V));
 	}
 	return transforms;
+
 }
 
 

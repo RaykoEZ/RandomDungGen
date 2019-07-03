@@ -80,8 +80,6 @@ public:
 	TArray<FTransform> getMapTileInstanceTransform(const int32 &_floorIdx) const;
 protected:
 
-	void generateFloors();
-
 	///@brief the properties to use when generating the dungeon floors
 	DungeonProperties dungeonProp;
 	///@brief data tables for the terrain layout of the generated floors

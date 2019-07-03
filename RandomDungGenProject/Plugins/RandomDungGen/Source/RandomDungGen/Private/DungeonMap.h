@@ -11,7 +11,19 @@
 ///@file Handles layout operations withn a floor map
 DECLARE_LOG_CATEGORY_EXTERN(RandomDungGen_DungeonMap, Warning, All);
 
+struct RANDOMDUNGGEN_API IntArray
+{
+	/// ctor and dtor
+	IntArray();
+	IntArray(const TArray<int32> &_dim);
+	~IntArray();
 
+	TArray<int32> dim;
+	int32& operator[] (const int32 &_i)
+	{
+		return dim[_i];
+	}
+};
 
 class RANDOMDUNGGEN_API DungeonMap
 {
@@ -47,11 +59,11 @@ public:
 	/// setters/adders
 	void addFloorDimX(const int32 &_floor, const int32 &_x) { floorDimX[_floor] = _x; }
 	void addFloorDimY(const int32 &_floor, const int32 &_y) { floorDimY[_floor] = _y; }
-	void addRoomDimX(const int32 &_floor, const int32 &_x) { roomDimX[_floor].dim.Add(_x); }
-	void addRoomDimY(const int32 &_floor, const int32 &_y) { roomDimY[_floor].dim.Add(_y); }
-	void addRoomPosX(const int32 &_floor, const int32 &_x) { roomPosX[_floor].dim.Add(_x); }
-	void addRoomPosY(const int32 &_floor, const int32 &_y) { roomPosY[_floor].dim.Add(_y); }
-	void addFloorMap(const int32 &_floor, const bool &_map) { floorMap[_floor].map.Add(_map); }
+	void addRoomDimX(const int32 &_floor, const int32 &_x) { roomDimX[_floor].dim.Push(_x); }
+	void addRoomDimY(const int32 &_floor, const int32 &_y) { roomDimY[_floor].dim.Push(_y); }
+	void addRoomPosX(const int32 &_floor, const int32 &_x) { roomPosX[_floor].dim.Push(_x); }
+	void addRoomPosY(const int32 &_floor, const int32 &_y) { roomPosY[_floor].dim.Push(_y); }
+	void addFloorMap(const int32 &_floor, const bool &_map) { floorMap[_floor].map.Push(_map); }
 	
 	
 	/// apply changes to the current map
