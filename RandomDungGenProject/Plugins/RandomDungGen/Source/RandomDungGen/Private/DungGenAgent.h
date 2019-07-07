@@ -14,7 +14,7 @@ struct RANDOMDUNGGEN_API FloorMap
 {
 	/// ctor and dtor
 	FloorMap();
-	FloorMap(const TArray<bool> &_map);
+	FloorMap(const TArray<bool> &_map, const TSet<FIntVector> &_roomPos);
 	~FloorMap();
 
 	///@brief raw flags for tile types on a floor
@@ -22,7 +22,7 @@ struct RANDOMDUNGGEN_API FloorMap
 	TArray<bool> map;
 	///@brief sets of tile positions to render on a floor.
 	TSet<FIntVector> traversableSet;
-
+	TSet<FIntVector> roomPosSet;
 	bool& operator[] (const int32 &_i)
 	{
 		return map[_i];
@@ -36,10 +36,13 @@ public:
 	DungGenAgent();
 
 	DungGenAgent(
+		const int32 &_numRooms,
 		const int32 &_dimX,
 		const int32 &_dimY,
 		const int32 &_numAgents,
 		const float &_detourRate,
+		const TArray<int32> &_roomDimX,
+		const TArray<int32> &_roomDimY,
 		const FloorMap & _map);
 
 	~DungGenAgent();
@@ -47,14 +50,17 @@ public:
 	///@brief reset this Agent's properties
 	/// attending to be used for constructing a new floor map
 	void reset(
+		const int32 &_numRooms,
 		const int32 &_dimX,
 		const int32 &_dimY,
 		const int32 &_numAgents,
 		const float &_detourRate,
+		const TArray<int32> &_roomDimX,
+		const TArray<int32> &_roomDimY,
 		const FloorMap & _map);
 
 	FloorMap createFloorMap();
-	
+
 
 	///@brief util methods that get the value in a floor's terrain with a an x-y grid coordinate
 	///and vice versa
@@ -67,10 +73,11 @@ protected:
 	void init();
 	///@brief decides agent's orientation
 	void tracePaths();
+	///@brief put rooms into the map
+	void insertRooms();
 	///@brief makes modification on the given floor map
 	void updateMap();
-	///@brief flag to show we've finished generating the floor
-	bool finishedTracing;
+	int32 numRoom;
 	/// dimensions of the current floor
 	int32 dimX;
 	int32 dimY;
@@ -78,15 +85,17 @@ protected:
 	float detourRate;
 	float invDimX;
 	float invDimY;
-	///@brief The XY direction of agents (indices) on the grid
+	///@brief The XY/idle direction of agents (indices) on the grid
 	/// 
+	TSet<int32> idleAgents;
 	TSet<int32> XAgents;
 	TSet<int32> YAgents;
 
 	/// @brief displacement from agent to target claculated and store here
 	TArray<int32> diffX;
 	TArray<int32> diffY;
-
+	TArray<int32> roomDimX;
+	TArray<int32> roomDimY;
 	TArray<int32> targetPosX;
 	TArray<int32> targetPosY;
 	TArray<int32> agentPosX;

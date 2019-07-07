@@ -48,6 +48,7 @@ DungeonMap::DungeonMap(
 		}
 		floorMap[i].map.SetNum(floorDimX[i] * floorDimY[i]);
 		floorMap[i].traversableSet.Reserve(roomArea);
+		floorMap[i].roomPosSet.Reserve(numRoom[i]);
 	}
 
 
@@ -75,14 +76,17 @@ void DungeonMap::genFloors()
 					roomPosY[i].dim[j], 0);
 
 			floorMap[i].traversableSet.Add(temp);
-
+			floorMap[i].roomPosSet.Add(temp);
 		}
 		/// Now we trace paths for each floor
 			DungGenAgent agent = DungGenAgent(
+			numRoom[i],
 			floorDimX[i],
 			floorDimY[i],
 			numRoom[i],
-			0.5f,
+			0.05f,
+			roomDimX[i].dim,
+			roomDimY[i].dim,
 			floorMap[i]);
 
 			floorMap[i] = agent.createFloorMap();

@@ -11,16 +11,23 @@ DungGenAgent::DungGenAgent()
 }
 
 DungGenAgent::DungGenAgent(
+	const int32 &_numRooms,
 	const int32 &_dimX,
 	const int32 &_dimY,
 	const int32 &_numAgents,
 	const float  &_detourRate,
-	const FloorMap & _map)
+	const TArray<int32> &_roomDimX,
+	const TArray<int32> &_roomDimY,
+	const FloorMap & _map
+)
 	:
+	numRoom(_numRooms),
 	dimX(_dimX),
 	dimY(_dimY),
 	numAgents(_numAgents),
-	detourRate(_detourRate), 
+	detourRate(_detourRate),
+	roomDimX(_roomDimX),
+	roomDimY(_roomDimY),
 	targetMap(_map)
 {
 	init();
@@ -31,30 +38,38 @@ DungGenAgent::~DungGenAgent()
 }
 
 void DungGenAgent::reset(
+	const int32 &_numRooms,
 	const int32 & _dimX, 
 	const int32 & _dimY, 
 	const int32 & _numAgents, 
-	const float & _detourRate, 
-	const FloorMap & _map)
+	const float & _detourRate,
+	const TArray<int32> &_roomDimX,
+	const TArray<int32> &_roomDimY,
+	const FloorMap & _map
+)
 {
+	numRoom = _numRooms;
 	dimX = _dimX;
 	dimY = dimY;
 	numAgents = _numAgents;
 	detourRate = _detourRate;
+	roomDimX = _roomDimX;
+	roomDimY = _roomDimY;
 	targetMap = _map;
+
 	init();
 }
 
 FloorMap DungGenAgent::createFloorMap()
 {
-	while (!finishedTracing)
-	{
-		tracePaths();
-	}
+
+	insertRooms();
+	tracePaths();
 
 	return targetMap;
 }
 
+/// TO DO - Generate random cross roads for agents to converge to
 void DungGenAgent::init()
 {
 	if (detourRate >= 1.0f) 
@@ -66,55 +81,52 @@ void DungGenAgent::init()
 	}
 	invDimX = 1 / dimX;
 	invDimY = 1 / dimY;
-	bool finishedTracing = false;
 	/// reserve memoory since we know the problem size
+
 	targetPosX.SetNum(numAgents);
 	targetPosY.SetNum(numAgents);
 	agentPosX.SetNum(numAgents);
 	agentPosY.SetNum(numAgents);
 	diffX.SetNum(numAgents);
 	diffY.SetNum(numAgents);
+	idleAgents.Reserve(numAgents);
 	XAgents.Reserve(numAgents);
 	YAgents.Reserve(numAgents);
 
 	/// setting init Positions for all agents
 	/// We occupy all necessary rooms first and leftover agents start in random rooms
-	if (targetMap.traversableSet.Num() > 0) 
+	if (targetMap.roomPosSet.Num() > 0)
 	{
-		auto traversable = targetMap.traversableSet.Array();
+		auto traversable = targetMap.roomPosSet.Array();
 		for (int g = 0; g < numAgents; ++g)
 		{
-			if (g < targetMap.traversableSet.Num())
-			{
-				agentPosX[g] = traversable[g].X;
-				agentPosY[g] = traversable[g].Y;
-
-
-			}
-			else
-			{
-				int randIdx = FMath::RandRange(0, targetMap.traversableSet.Num());
-				agentPosX[g] = traversable[randIdx].X;
-				agentPosY[g] = traversable[randIdx].Y;
-
-			}
-
+			auto targets = targetMap.roomPosSet.Array();
 			/// initialize target positions, similar to setting positions but we remove self position
-			auto targets = targetMap.traversableSet;
-			auto targetArr = targets.Array();
 
-			if (g < targetArr.Num())
+			//int randXOffset = FMath::RandRange(0, roomDimX[g] - 1);
+			//int randYOffest = FMath::RandRange(0, roomDimY[g] - 1);
+
+			if (g < targets.Num())
 			{
-				targetPosX[g] = targetArr[g].X;
-				targetPosY[g] = targetArr[g].Y;
-
+				agentPosX[g] = traversable[g].X;// +randXOffset;
+				agentPosY[g] = traversable[g].Y;// +randYOffest;
 			}
 			else
 			{
-				int randTargetIdx = FMath::RandRange(0, targetArr.Num());
-				targetPosX[g] = targetArr[randTargetIdx].X;
-				targetPosY[g] = targetArr[randTargetIdx].Y;
+				int randIdx = FMath::RandRange(0, targets.Num() - 1);
+				agentPosX[g] = traversable[randIdx].X;// + randXOffset;
+				agentPosY[g] = traversable[randIdx].Y;// + randYOffest;
+
 			}
+
+			auto otherRooms = targetMap.roomPosSet.Array();
+			/// removeyourself from potential seeking targets, you know, don't chase your tails
+			int randTargetIdx = FMath::RandRange(0, otherRooms.Num() - 1);
+			int randTargetXOffset = FMath::RandRange(0, roomDimX[randTargetIdx] - 1);
+			int randTargetYOffest = FMath::RandRange(0, roomDimY[randTargetIdx] - 1);
+			targetPosX[g] = otherRooms[randTargetIdx].X + randTargetXOffset;
+			targetPosY[g] = otherRooms[randTargetIdx].Y + randTargetYOffest;
+
 		}
 	}
 	
@@ -134,58 +146,93 @@ void DungGenAgent::tracePaths()
 	/// we do a normal Manhattan trace with a detour roll to simulate some chaos
 	/// so normal route would be an L-shapoe
 	/// a detour would make a random guess based on a coin flip
-	int idleAgents = 0;
-	for (int i = 0; i < numAgents; ++i) 
+	UE_LOG(RandomDungGen_DungGenAgent, Warning, TEXT("num agents: %d."), numAgents);
+	
+	while (idleAgents.Num() < numAgents)
 	{
-
-		int32 dispX = targetPosX[i] - agentPosX[i];
-		int32 dispY = targetPosY[i] - agentPosY[i];
-		diffX[i] = dispX;
-		diffY[i] = dispY;
-		/// Why steer if we're already here?
-		if (dispX != 0 && dispY != 0) 
+		
+		for (int i = 0; i < numAgents; ++i)
 		{
-			float detourRoll = FMath::FRandRange(0.0f, 1.0f);
-			/// we take a detour id we roll into detourRate
-			if (detourRoll < detourRate)
+
+			int32 dispX = targetPosX[i] - agentPosX[i];
+			int32 dispY = targetPosY[i] - agentPosY[i];
+			diffX[i] = dispX;
+			diffY[i] = dispY;
+			int32 distX = FMath::Abs(dispX);
+			int32 distY = FMath::Abs(dispY);
+			/// Why steer if we're already here?
+			if (distX > 0 || distY > 0)
 			{
-				/// We reuse the same roll to do a "coin flip" 
-				/// using this to decide which axis to steer towards
-				if (detourRoll < 0.5f * detourRate)
+				float detourRoll = FMath::FRandRange(0.0f, 1.0f);
+				/// we take a detour id we roll into detourRate
+
+				if (detourRoll < detourRate)
+				{
+					/// We reuse the same roll to do a "coin flip" 
+					/// using this to decide which axis to steer towards
+					if (detourRoll < 0.5f * detourRate)
+					{
+						XAgents.Add(i);
+					}
+					else
+					{
+						YAgents.Add(i);
+					}
+				}
+				/// decides to go either in X or Y
+				else if (dispX != 0)
 				{
 					XAgents.Add(i);
-					YAgents.Remove(i);
 				}
 				else
 				{
 					YAgents.Add(i);
-					XAgents.Remove(i);
 				}
 			}
-			/// decides to go either in X or Y
-			else if (dispX != 0)
+			else 
 			{
-				XAgents.Add(i);
-				YAgents.Remove(i);
+
+				idleAgents.Add(i);
+				UE_LOG(RandomDungGen_DungGenAgent, Warning, TEXT("numfinished : %d."), idleAgents.Num());
 			}
-			else
-			{
-				YAgents.Add(i);
-				XAgents.Remove(i);
-			}
+			
 		}
-		else 
-		{
-			++idleAgents;
-		}
+		updateMap();
+
+
 	}
-	updateMap();
+
+	
 	/// When do we stop?
 	/// When target is reached
-	if (idleAgents == numAgents) 
+
+}
+
+void DungGenAgent::insertRooms()
+{
+	auto arr = targetMap.roomPosSet.Array();
+	for (int i = 0; i < arr.Num(); ++i)
 	{
-		finishedTracing = true;
+		int32 x = agentPosX[i];
+		int32 y = agentPosY[i];
+		for (int j = 0; j < roomDimX[i]; ++j)
+		{
+			for (int k = 0 ; k < roomDimY[i]; ++k)
+			{
+				int32 newX = x + j;
+				int32 newY = y + k;
+				if (newX < dimX && newY < dimY) 
+				{
+					mapCellValue(newX, newY) = true;
+					targetMap.traversableSet.Add(FIntVector(newX, newY, 0));
+				}
+
+			}
+		}
+
+
 	}
+
 }
 
 void DungGenAgent::updateMap()
@@ -200,19 +247,27 @@ void DungGenAgent::updateMap()
 		for (int i = 0; i < arr.Num(); ++i)
 		{
 			int32 posX = agentPosX[arr[i]];
-			if (diffX[i] < 0 && posX > 0) 
+			if (diffX[arr[i]] > 0 && posX < dimX - 1)
 			{
-				/// target X is less than agent, need to go left
-				--agentPosX[arr[i]];			
+				/// target X is less than agent, need to go right
+				agentPosX[arr[i]] += 1;	
+				FIntVector newPos = FIntVector(agentPosX[arr[i]], agentPosY[arr[i]], 0);
+				mapCellValue(newPos.X, newPos.Y) = true;
+				targetMap.traversableSet.Add(newPos);
 			}
-			else if (diffX[i] < 0 && posX < dimX - 1)
+			else if (diffX[arr[i]] < 0 && posX > 0)
 			{
-				/// go right
-				++agentPosX[arr[i]];
+				/// go left
+				agentPosX[arr[i]] -= 1;
+				FIntVector newPos = FIntVector(agentPosX[arr[i]], agentPosY[arr[i]], 0);
+				mapCellValue(newPos.X, newPos.Y) = true;
+				targetMap.traversableSet.Add(newPos);
 			}
-			FIntVector newPos = FIntVector(agentPosX[arr[i]], agentPosY[arr[i]], 0);
-			mapCellValue(newPos.X, newPos.Y) = true;
-			targetMap.traversableSet.Add(newPos);
+			else 
+			{
+				YAgents.Add(arr[i]);
+			}
+
 
 		}
 	}
@@ -224,23 +279,28 @@ void DungGenAgent::updateMap()
 		{
 			int32 posY = agentPosY[arr[i]];
 
-			if (diffY[i] < 0 && posY > 0)
+			if (diffY[arr[i]] > 0 && posY < dimY - 1)
 			{
-				/// target left of us, go down
-				--agentPosY[arr[i]];
+				/// target above of us, go up
+				agentPosY[arr[i]] += 1;
+				FIntVector newPos = FIntVector(agentPosX[arr[i]], agentPosY[arr[i]], 0);
+				mapCellValue(newPos.X, newPos.Y) = true;
+				targetMap.traversableSet.Add(newPos);
 			}
-			else if (diffY[i] < 0 && posY < dimY - 1)
+			else if (diffY[arr[i]] < 0 && posY > 0)
 			{
-				/// go up
-				++agentPosY[arr[i]];
+				/// go doen
+				agentPosY[arr[i]] -= 1;
+				FIntVector newPos = FIntVector(agentPosX[arr[i]], agentPosY[arr[i]], 0);
+				mapCellValue(newPos.X, newPos.Y) = true;
+				targetMap.traversableSet.Add(newPos);
 			}
-			FIntVector newPos = FIntVector(agentPosX[arr[i]], agentPosY[arr[i]], 0);
-			mapCellValue(newPos.X, newPos.Y) = true;
-			targetMap.traversableSet.Add(newPos);
+
 		}
 	}
 
-
+	XAgents.Empty();
+	YAgents.Empty();
 }
 
 
@@ -272,7 +332,10 @@ FloorMap::FloorMap()
 {
 }
 
-FloorMap::FloorMap(const TArray<bool>& _map) : map(_map)
+FloorMap::FloorMap(const TArray<bool>& _map, const TSet<FIntVector> &_roomPos)
+	: 
+map(_map), 
+roomPosSet(_roomPos)
 {
 }
 

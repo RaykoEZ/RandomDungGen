@@ -25,10 +25,12 @@ protected:
 	virtual void OnConstruction(const FTransform & Transform) override;
 	DungeonGenerator m_gen;
 	DungeonProperties m_prop;
-	UPROPERTY(EditAnywhere)
-	UInstancedStaticMeshComponent* m_generatedMesh;
+	
 public:	
+	UPROPERTY()
+	UInstancedStaticMeshComponent* m_generatedMesh;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
+	UFUNCTION(BlueprintCallable, Category = "RandomDungGen")
+	void genMap();
 };

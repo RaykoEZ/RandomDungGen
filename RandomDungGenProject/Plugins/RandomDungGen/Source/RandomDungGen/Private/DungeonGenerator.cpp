@@ -14,6 +14,7 @@ DungeonGenerator::DungeonGenerator()
 DungeonGenerator::DungeonGenerator(const DungeonProperties & _properties) 
 	: dungeonProp(_properties)
 {
+
 }
 
 DungeonGenerator::~DungeonGenerator()
@@ -177,6 +178,16 @@ DungeonProperties::DungeonProperties(
 	floorDimMin(_floorDimMin),
 	floorDimMax(_floorDimMax)
 {
+	int32 maxRoomArea = numRoomMax * roomDimMax* roomDimMax;
+	int32 maxFloorArea = (floorDimMax-1) * (floorDimMax - 1);
+	if (maxRoomArea > maxFloorArea)
+	{
+		UE_LOG(RandomDungGen_DungeonGenerator, Warning, TEXT("A sum of room size can potentially overlap a floor size, please choose a suitable range for room dimensions"));
+		roomDimMax = 1;
+		roomDimMin = 1;
+	}
+
+
 }
 
 DungeonProperties::~DungeonProperties()
