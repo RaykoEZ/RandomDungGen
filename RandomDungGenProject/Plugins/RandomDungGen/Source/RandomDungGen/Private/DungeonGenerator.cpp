@@ -179,8 +179,8 @@ DungeonProperties::DungeonProperties(
 	floorDimMax(_floorDimMax)
 {
 	int32 maxRoomArea = numRoomMax * roomDimMax* roomDimMax;
-	int32 maxFloorArea = (floorDimMax-1) * (floorDimMax - 1);
-	if (maxRoomArea > maxFloorArea)
+	int32 minFloorArea = (floorDimMin-1) * (floorDimMin - 1);
+	if (maxRoomArea > minFloorArea)
 	{
 		UE_LOG(RandomDungGen_DungeonGenerator, Warning, TEXT("A sum of room size can potentially overlap a floor size, please choose a suitable range for room dimensions"));
 		roomDimMax = 1;

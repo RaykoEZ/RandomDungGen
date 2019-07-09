@@ -39,7 +39,6 @@ public:
 		const int32 &_numRooms,
 		const int32 &_dimX,
 		const int32 &_dimY,
-		const int32 &_numAgents,
 		const float &_detourRate,
 		const TArray<int32> &_roomDimX,
 		const TArray<int32> &_roomDimY,
@@ -53,7 +52,6 @@ public:
 		const int32 &_numRooms,
 		const int32 &_dimX,
 		const int32 &_dimY,
-		const int32 &_numAgents,
 		const float &_detourRate,
 		const TArray<int32> &_roomDimX,
 		const TArray<int32> &_roomDimY,
@@ -71,12 +69,21 @@ public:
 protected:
 	///@brief initialise agent origins
 	void init();
+	/// @brief we use one agent to define a main route to connect each rooms, 
+	/// avoiding disconnectivity in the maps
+	void traceSpanningTree();
 	///@brief decides agent's orientation
 	void tracePaths();
 	///@brief put rooms into the map
 	void insertRooms();
+	///@brief method to select target rooms of each agent, 
+	/// this implements a randomized spanning tree for the dungeon network
+	void setupMinimalConnections();
 	///@brief makes modification on the given floor map
 	void updateMap();
+	///@brief clear used data (The agent state values shown below) for new cycle
+	void cleanup();
+
 	int32 numRoom;
 	/// dimensions of the current floor
 	int32 dimX;
@@ -86,11 +93,10 @@ protected:
 	float invDimX;
 	float invDimY;
 	///@brief The XY/idle direction of agents (indices) on the grid
-	/// 
+	///  ---AGENT STATE VALUES - EMPTY THESE WHEN A TRACE IS DONE for sanity-------a
 	TSet<int32> idleAgents;
 	TSet<int32> XAgents;
 	TSet<int32> YAgents;
-
 	/// @brief displacement from agent to target claculated and store here
 	TArray<int32> diffX;
 	TArray<int32> diffY;
@@ -102,5 +108,4 @@ protected:
 	TArray<int32> agentPosY;
 
 	FloorMap targetMap;
-
 };

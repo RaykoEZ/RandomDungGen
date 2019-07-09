@@ -17,6 +17,7 @@ class RANDOMDUNGGENPROJECT_API ADungeonInfo : public AActor
 public:	
 	// Sets default values for this actor's properties
 	ADungeonInfo();
+	ADungeonInfo(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	// Called when the game starts or when spawned
@@ -27,7 +28,7 @@ protected:
 	DungeonProperties m_prop;
 	
 public:	
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	UInstancedStaticMeshComponent* m_generatedMesh;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

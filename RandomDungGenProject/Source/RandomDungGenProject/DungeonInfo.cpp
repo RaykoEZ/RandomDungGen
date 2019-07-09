@@ -8,11 +8,11 @@ ADungeonInfo::ADungeonInfo()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	m_prop = DungeonProperties(1, 3, 5, 4, 15, 90, 100);
+	m_prop = DungeonProperties(1, 10, 20, 5, 10, 50, 120);
 	m_gen = DungeonGenerator(m_prop);
 
 
-	m_generatedMesh = NewObject<UInstancedStaticMeshComponent>(this,TEXT("RandomDungGen Floor"));
+	m_generatedMesh = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("RandomDungGen Floor"));
 	m_generatedMesh->RegisterComponent();
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh>MeshAsset(TEXT("StaticMesh'/Engine/Functions/Engine_MaterialFunctions02/SupportFiles/1x1x1_Box_Pivot_-XYZ.1x1x1_Box_Pivot_-XYZ'"));
@@ -24,6 +24,23 @@ ADungeonInfo::ADungeonInfo()
 	//genMap();
 }
 
+ADungeonInfo::ADungeonInfo(const FObjectInitializer& ObjectInitializer)
+{
+
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+	m_prop = DungeonProperties(1, 10, 20, 5, 10, 50, 120);
+	m_gen = DungeonGenerator(m_prop);
+
+	//Make our mesh component (named 'MyMesh') and set it up to be our root component  
+	m_generatedMesh = ObjectInitializer.CreateDefaultSubobject<UInstancedStaticMeshComponent>(this, TEXT("RandomDungGen Floor"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh>MeshAsset(TEXT("StaticMesh'/Engine/Functions/Engine_MaterialFunctions02/SupportFiles/1x1x1_Box_Pivot_-XYZ.1x1x1_Box_Pivot_-XYZ'"));
+	UStaticMesh* asset = MeshAsset.Object;
+	m_generatedMesh->SetStaticMesh(asset);
+	RootComponent = m_generatedMesh;
+	//m_generatedMap->SetFlags(RF_Transactional);
+	this->AddInstanceComponent(m_generatedMesh);
+}
 // Called when the game starts or when spawned
 void ADungeonInfo::BeginPlay()
 {

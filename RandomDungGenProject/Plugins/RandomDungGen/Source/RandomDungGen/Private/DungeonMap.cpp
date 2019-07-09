@@ -83,7 +83,6 @@ void DungeonMap::genFloors()
 			numRoom[i],
 			floorDimX[i],
 			floorDimY[i],
-			numRoom[i],
 			0.05f,
 			roomDimX[i].dim,
 			roomDimY[i].dim,

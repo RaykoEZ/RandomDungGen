@@ -14,7 +14,6 @@ DungGenAgent::DungGenAgent(
 	const int32 &_numRooms,
 	const int32 &_dimX,
 	const int32 &_dimY,
-	const int32 &_numAgents,
 	const float  &_detourRate,
 	const TArray<int32> &_roomDimX,
 	const TArray<int32> &_roomDimY,
@@ -24,7 +23,6 @@ DungGenAgent::DungGenAgent(
 	numRoom(_numRooms),
 	dimX(_dimX),
 	dimY(_dimY),
-	numAgents(_numAgents),
 	detourRate(_detourRate),
 	roomDimX(_roomDimX),
 	roomDimY(_roomDimY),
@@ -41,7 +39,6 @@ void DungGenAgent::reset(
 	const int32 &_numRooms,
 	const int32 & _dimX, 
 	const int32 & _dimY, 
-	const int32 & _numAgents, 
 	const float & _detourRate,
 	const TArray<int32> &_roomDimX,
 	const TArray<int32> &_roomDimY,
@@ -51,7 +48,6 @@ void DungGenAgent::reset(
 	numRoom = _numRooms;
 	dimX = _dimX;
 	dimY = dimY;
-	numAgents = _numAgents;
 	detourRate = _detourRate;
 	roomDimX = _roomDimX;
 	roomDimY = _roomDimY;
@@ -82,7 +78,15 @@ void DungGenAgent::init()
 	invDimX = 1 / dimX;
 	invDimY = 1 / dimY;
 	/// reserve memoory since we know the problem size
+	cleanup();
+	/// We construct a minimal skeleton to ensure connectivity of the dungeon before tracing newer routes
+	setupMinimalConnections();
+	/// setting init Positions for all agents
+	/// We occupy all necessary rooms first and leftover agents start in random rooms
 
+
+	numAgents = targetMap.roomPosSet.Num();
+	UE_LOG(RandomDungGen_DungGenAgent, Warning, TEXT("Number of agents in this parse : %d."), numAgents);
 	targetPosX.SetNum(numAgents);
 	targetPosY.SetNum(numAgents);
 	agentPosX.SetNum(numAgents);
@@ -93,39 +97,35 @@ void DungGenAgent::init()
 	XAgents.Reserve(numAgents);
 	YAgents.Reserve(numAgents);
 
-	/// setting init Positions for all agents
-	/// We occupy all necessary rooms first and leftover agents start in random rooms
 	if (targetMap.roomPosSet.Num() > 0)
 	{
 		auto traversable = targetMap.roomPosSet.Array();
 		for (int g = 0; g < numAgents; ++g)
 		{
-			auto targets = targetMap.roomPosSet.Array();
 			/// initialize target positions, similar to setting positions but we remove self position
+			auto otherRooms = targetMap.roomPosSet.Array();
+			/// removeyourself from potential seeking targets, you know, don't chase your tails
 
-			//int randXOffset = FMath::RandRange(0, roomDimX[g] - 1);
-			//int randYOffest = FMath::RandRange(0, roomDimY[g] - 1);
-
-			if (g < targets.Num())
+			if (g < otherRooms.Num())
 			{
-				agentPosX[g] = traversable[g].X;// +randXOffset;
-				agentPosY[g] = traversable[g].Y;// +randYOffest;
+
+				agentPosX[g] = traversable[g].X;
+				agentPosY[g] = traversable[g].Y;
 			}
 			else
 			{
-				int randIdx = FMath::RandRange(0, targets.Num() - 1);
-				agentPosX[g] = traversable[randIdx].X;// + randXOffset;
-				agentPosY[g] = traversable[randIdx].Y;// + randYOffest;
+				int randIdx = FMath::RandRange(0, otherRooms.Num() - 1);
+
+				agentPosX[g] = traversable[randIdx].X;
+				agentPosY[g] = traversable[randIdx].Y;
 
 			}
 
-			auto otherRooms = targetMap.roomPosSet.Array();
-			/// removeyourself from potential seeking targets, you know, don't chase your tails
 			int randTargetIdx = FMath::RandRange(0, otherRooms.Num() - 1);
-			int randTargetXOffset = FMath::RandRange(0, roomDimX[randTargetIdx] - 1);
-			int randTargetYOffest = FMath::RandRange(0, roomDimY[randTargetIdx] - 1);
-			targetPosX[g] = otherRooms[randTargetIdx].X + randTargetXOffset;
-			targetPosY[g] = otherRooms[randTargetIdx].Y + randTargetYOffest;
+			int randXOffset = FMath::RandRange(0, roomDimX[randTargetIdx] - 1);
+			int randYOffest = FMath::RandRange(0, roomDimY[randTargetIdx] - 1);
+			targetPosX[g] = otherRooms[randTargetIdx].X + randXOffset;
+			targetPosY[g] = otherRooms[randTargetIdx].Y + randYOffest;
 
 		}
 	}
@@ -133,7 +133,102 @@ void DungGenAgent::init()
 }
 
 
+void DungGenAgent::setupMinimalConnections()
+{
 
+	numAgents = 1;
+	int numRoom = targetMap.roomPosSet.Num();
+	UE_LOG(RandomDungGen_DungGenAgent, Warning, TEXT("Number of agents in this parse : %d."), numAgents);
+	targetPosX.SetNum(numRoom-1);
+	targetPosY.SetNum(numRoom-1);
+	agentPosX.SetNum(numAgents);
+	agentPosY.SetNum(numAgents);
+	diffX.SetNum(numAgents);
+	diffY.SetNum(numAgents);
+	XAgents.Reserve(numAgents);
+	YAgents.Reserve(numAgents);
+
+
+
+	/// setting init Positions for all agents
+	/// We occupy all necessary rooms first and leftover agents start in random rooms
+	if (targetMap.roomPosSet.Num() > 0)
+	{
+		auto roomPos = targetMap.roomPosSet.Array();
+		TSet<FIntVector> targetRooms;
+		targetRooms.Reserve(numRoom);
+
+
+
+		/// get a random initial position for an agent
+		int roomIdx = FMath::RandRange(0, roomPos.Num() - 1);
+		auto pos = roomPos[roomIdx];
+		agentPosX[0] = pos.X;
+		agentPosY[0] = pos.Y;
+
+
+		//targetRooms.Add(pos);
+		roomPos.RemoveSingle(pos);
+		roomPos.Shrink();
+
+		/// fill in the from and to table and a traversal log
+		/// this will be used to set agent positions and targets
+		for (int i = 0; i < roomPos.Num(); ++i)
+		{
+			int randXOffset = FMath::RandRange(0, roomDimX[i] - 1);
+			int randYOffest = FMath::RandRange(0, roomDimY[i] - 1);
+			auto offset = FIntVector(randXOffset, randYOffest, 0);
+			auto pos = roomPos[i];
+			
+			targetPosX[i] = pos.X + offset.X;
+			targetPosY[i] = pos.Y + offset.Y;
+		}	
+		traceSpanningTree();
+
+		cleanup();
+	}
+
+}
+
+
+void::DungGenAgent::traceSpanningTree() 
+{
+	bool finishedTracing;
+	/// Why steer if we're already here?
+	for (int i = 0; i < targetPosX.Num(); ++i) 
+	{
+		finishedTracing = false;
+		while (!finishedTracing)
+		{
+			int32 dispX = targetPosX[i] - agentPosX[0];
+			int32 dispY = targetPosY[i] - agentPosY[0];
+			diffX[0] = dispX;
+			diffY[0] = dispY;
+			int32 distX = FMath::Abs(dispX);
+			int32 distY = FMath::Abs(dispY);
+			if (distX > 0 || distY > 0)
+			{
+				/// we take a detour id we roll into detourRate
+				if (dispX != 0)
+				{
+					XAgents.Add(0);
+				}
+				else
+				{
+					YAgents.Add(0);
+				}
+			}
+			else
+			{
+				finishedTracing = true;
+			}
+			updateMap();	
+		}
+	
+	
+	}
+
+}
 
 void DungGenAgent::tracePaths()
 {
@@ -302,6 +397,20 @@ void DungGenAgent::updateMap()
 	XAgents.Empty();
 	YAgents.Empty();
 }
+
+void DungGenAgent::cleanup()
+{
+	targetPosX.Empty();
+	targetPosY.Empty();
+	agentPosX.Empty();
+	agentPosY.Empty();
+	XAgents.Empty();
+	YAgents.Empty();
+	diffX.Empty();
+	diffY.Empty();
+}
+
+
 
 
 
