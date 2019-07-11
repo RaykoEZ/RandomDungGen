@@ -24,6 +24,7 @@ protected:
 	virtual void BeginPlay() override;
 	/// called when constructed in editor
 	virtual void OnConstruction(const FTransform & Transform) override;
+	///@nrief the generator to generate levels
 	DungeonGenerator m_gen;
 	UPROPERTY(EditAnywhere)
 	FDungeonProperties m_prop;
@@ -31,12 +32,13 @@ protected:
 	UPROPERTY(EditAnywhere)
 	int32 m_currentFloorToRender;
 public:	
-
+	///@brief This contains all instances of floor tile meshes of the current level
 	UPROPERTY(BlueprintReadOnly)
 	UInstancedStaticMeshComponent* m_generatedMesh;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 #if WITH_EDITOR
+	///@brief call this to generate levels after setting up your m_prop
 	UFUNCTION(BlueprintCallable, Category = "RandomDungGen")
 	void genMap();
 #endif
