@@ -8,10 +8,10 @@ DEFINE_LOG_CATEGORY(RandomDungGen_DungeonGenerator);
 
 DungeonGenerator::DungeonGenerator()
 {
-	dungeonProp = DungeonProperties();	
+	dungeonProp = FDungeonProperties();	
 }
 
-DungeonGenerator::DungeonGenerator(const DungeonProperties & _properties) 
+DungeonGenerator::DungeonGenerator(const FDungeonProperties & _properties) 
 	: dungeonProp(_properties)
 {
 
@@ -150,46 +150,3 @@ TArray<FTransform> DungeonGenerator::getMapTileInstanceTransform(const int32 &_f
 }
 
 
-DungeonProperties::DungeonProperties()
-{
-	numFloors = 1;
-	numRoomMax = 1;
-	numRoomMin = 1;
-	roomDimMax = 5;
-	roomDimMin = 3;
-	floorDimMin = 1;
-	floorDimMax = 2;
-}
-
-DungeonProperties::DungeonProperties(
-	const int32 & _numFloor,
-	const int32 & _numRoomMin,
-	const int32 & _numRoomMax,
-	const int32 & _roomDimMin,
-	const int32 & _roomDimMax,
-	const int32 & _floorDimMin,
-	const int32 & _floorDimMax
-	):
-	numFloors(_numFloor),
-	numRoomMin(_numRoomMin),
-	numRoomMax(_numRoomMax),
-	roomDimMin(_roomDimMin),
-	roomDimMax(_roomDimMax),
-	floorDimMin(_floorDimMin),
-	floorDimMax(_floorDimMax)
-{
-	int32 maxRoomArea = numRoomMax * roomDimMax* roomDimMax;
-	int32 minFloorArea = (floorDimMin-1) * (floorDimMin - 1);
-	if (maxRoomArea > minFloorArea)
-	{
-		UE_LOG(RandomDungGen_DungeonGenerator, Warning, TEXT("A sum of room size can potentially overlap a floor size, please choose a suitable range for room dimensions"));
-		roomDimMax = 1;
-		roomDimMin = 1;
-	}
-
-
-}
-
-DungeonProperties::~DungeonProperties()
-{
-}

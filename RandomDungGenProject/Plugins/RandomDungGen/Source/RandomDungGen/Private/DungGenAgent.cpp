@@ -137,7 +137,7 @@ void DungGenAgent::setupMinimalConnections()
 {
 
 	numAgents = 1;
-	int numRoom = targetMap.roomPosSet.Num();
+	numRoom = targetMap.roomPosSet.Num();
 	UE_LOG(RandomDungGen_DungGenAgent, Warning, TEXT("Number of agents in this parse : %d."), numAgents);
 	targetPosX.SetNum(numRoom-1);
 	targetPosY.SetNum(numRoom-1);

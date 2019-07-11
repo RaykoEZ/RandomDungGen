@@ -25,13 +25,19 @@ protected:
 	/// called when constructed in editor
 	virtual void OnConstruction(const FTransform & Transform) override;
 	DungeonGenerator m_gen;
-	DungeonProperties m_prop;
-	
+	UPROPERTY(EditAnywhere)
+	FDungeonProperties m_prop;
+	/// @brief Choose which floor to render
+	UPROPERTY(EditAnywhere)
+	int32 m_currentFloorToRender;
 public:	
+
 	UPROPERTY(BlueprintReadOnly)
 	UInstancedStaticMeshComponent* m_generatedMesh;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+#if WITH_EDITOR
 	UFUNCTION(BlueprintCallable, Category = "RandomDungGen")
 	void genMap();
+#endif
 };
