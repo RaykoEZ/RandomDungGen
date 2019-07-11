@@ -42,9 +42,9 @@ ____
 ____
 ## Images
 
-![Iamge 1]()
+![Iamge 1](https://github.com/RaykoEZ/RandomDungGen/blob/master/Images/Example_Bigger.png)
 
-![Image 2]()
+![Image 2](https://github.com/RaykoEZ/RandomDungGen/blob/master/Images/Example_Small.png)
 
 ____
 ## Current References
