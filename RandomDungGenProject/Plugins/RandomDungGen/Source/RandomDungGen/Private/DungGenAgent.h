@@ -22,6 +22,7 @@ struct RANDOMDUNGGEN_API FloorMap
 	TArray<bool> map;
 	///@brief sets of tile positions to render on a floor.
 	TSet<FIntVector> traversableSet;
+	///@brief sets of origin positions of each room
 	TSet<FIntVector> roomPosSet;
 	bool& operator[] (const int32 &_i)
 	{
@@ -83,13 +84,15 @@ protected:
 	void updateMap();
 	///@brief clear used data (The agent state values shown below) for new cycle
 	void cleanup();
-
+	///@brief number of rooms
 	int32 numRoom;
 	/// dimensions of the current floor
 	int32 dimX;
 	int32 dimY;
 	int32 numAgents;
+	///@brief chance to flip an agent's axis of motion
 	float detourRate;
+	///@brief pre-calculated inversion so we don't do division every time
 	float invDimX;
 	float invDimY;
 	///@brief The XY/idle direction of agents (indices) on the grid
@@ -100,12 +103,15 @@ protected:
 	/// @brief displacement from agent to target claculated and store here
 	TArray<int32> diffX;
 	TArray<int32> diffY;
+	///@brief room dimensions
 	TArray<int32> roomDimX;
 	TArray<int32> roomDimY;
+	///@brief target positions of each digging agent
 	TArray<int32> targetPosX;
 	TArray<int32> targetPosY;
+	///@brief current position of each agent
 	TArray<int32> agentPosX;
 	TArray<int32> agentPosY;
-
+	///@brief the map the agent are "digging" in
 	FloorMap targetMap;
 };

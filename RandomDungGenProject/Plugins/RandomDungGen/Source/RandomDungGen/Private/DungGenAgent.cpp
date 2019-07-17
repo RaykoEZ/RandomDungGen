@@ -171,7 +171,7 @@ void DungGenAgent::setupMinimalConnections()
 		roomPos.RemoveSingle(pos);
 		roomPos.Shrink();
 
-		/// fill in the from and to table and a traversal log
+		/// we add rabdin offsets to our target position, just so we don't seek into the same corner of the room
 		/// this will be used to set agent positions and targets
 		for (int i = 0; i < roomPos.Num(); ++i)
 		{
@@ -194,7 +194,7 @@ void DungGenAgent::setupMinimalConnections()
 void::DungGenAgent::traceSpanningTree() 
 {
 	bool finishedTracing;
-	/// Why steer if we're already here?
+	/// we need to seek for all targets if we use one agent
 	for (int i = 0; i < targetPosX.Num(); ++i) 
 	{
 		finishedTracing = false;
@@ -206,9 +206,9 @@ void::DungGenAgent::traceSpanningTree()
 			diffY[0] = dispY;
 			int32 distX = FMath::Abs(dispX);
 			int32 distY = FMath::Abs(dispY);
+			/// we prioritize one axis over another
 			if (distX > 0 || distY > 0)
 			{
-				/// we take a detour id we roll into detourRate
 				if (dispX != 0)
 				{
 					XAgents.Add(0);
@@ -248,7 +248,7 @@ void DungGenAgent::tracePaths()
 		
 		for (int i = 0; i < numAgents; ++i)
 		{
-
+			/// we calculate displacement between each agent's position and the target
 			int32 dispX = targetPosX[i] - agentPosX[i];
 			int32 dispY = targetPosY[i] - agentPosY[i];
 			diffX[i] = dispX;
@@ -256,6 +256,8 @@ void DungGenAgent::tracePaths()
 			int32 distX = FMath::Abs(dispX);
 			int32 distY = FMath::Abs(dispY);
 			/// Why steer if we're already here?
+			/// When do we stop?
+			/// When target is reached
 			if (distX > 0 || distY > 0)
 			{
 				float detourRoll = FMath::FRandRange(0.0f, 1.0f);
@@ -287,38 +289,37 @@ void DungGenAgent::tracePaths()
 			else 
 			{
 
+
 				idleAgents.Add(i);
 				UE_LOG(RandomDungGen_DungGenAgent, Warning, TEXT("numfinished : %d."), idleAgents.Num());
 			}
 			
 		}
 		updateMap();
-
-
 	}
-
-	
-	/// When do we stop?
-	/// When target is reached
-
 }
 
 void DungGenAgent::insertRooms()
 {
+	/// We do this for each room in the floor, arr is the array of each unique rooms
 	auto arr = targetMap.roomPosSet.Array();
 	for (int i = 0; i < arr.Num(); ++i)
 	{
 		int32 x = agentPosX[i];
 		int32 y = agentPosY[i];
+		/// for each dimension pair, we incrementally fill tiles in until j and k reaches roomDim[i]
 		for (int j = 0; j < roomDimX[i]; ++j)
 		{
 			for (int k = 0 ; k < roomDimY[i]; ++k)
 			{
 				int32 newX = x + j;
 				int32 newY = y + k;
+				/// check if we have out of index from somewhere for some reason
 				if (newX < dimX && newY < dimY) 
 				{
+					/// fill in the bool map
 					mapCellValue(newX, newY) = true;
+					/// add the new tile position into the floor tile set for rendering later
 					targetMap.traversableSet.Add(FIntVector(newX, newY, 0));
 				}
 
